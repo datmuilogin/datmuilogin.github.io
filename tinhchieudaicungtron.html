@@ -85,11 +85,11 @@
 <div class="container">
 <h3>Tính chiều dài cung tròn L</h3>
 
-<label>Nhập d (cm):</label>
-<input type="number" id="ab" value="2718">
+<label>Nhập d:</label>
+<input type="number" id="d" value="2718">
 
-<label>Nhập h (cm):</label>
-<input type="number" id="mk" value="279">
+<label>Nhập h:</label>
+<input type="number" id="h" value="279">
 
 <button onclick="tinhCung()">Tính chiều dài cung</button>
 
@@ -98,8 +98,8 @@
 
 <script>
 function tinhCung() {
-    let c = parseFloat(document.getElementById("ab").value);
-    let h = parseFloat(document.getElementById("mk").value);
+    let c = parseFloat(document.getElementById("d").value);
+    let h = parseFloat(document.getElementById("h").value);
 
     if (c <= 0 || h <= 0) {
         document.getElementById("ketqua").innerHTML = "Giá trị không hợp lệ.";
