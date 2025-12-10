@@ -83,7 +83,7 @@
 <body>
 
 <div class="container">
-<h3>Tính chiều dài cung tròn</h3>
+<h3>Tính nhanh chiều dài cung tròn</h3>
 
 <label>Nhập giá trị d =</label>
 <input type="number" id="d" value="2718">
@@ -91,7 +91,7 @@
 <label>Nhập giá trị h =</label>
 <input type="number" id="h" value="279">
 
-<button onclick="tinhCung()">Tính chiều dài cung</button>
+<button onclick="tinhCung()">Tính chiều dài cung tròn</button>
 
 <div class="result" id="ketqua"></div>
 </div>
@@ -111,7 +111,7 @@ function tinhCung() {
     let L = R * theta;
 
     document.getElementById("ketqua").innerHTML =
-        "Kết quả L = <b>" + L.toFixed(4) + " cm</b>";
+        "Kết quả L = <b>" + L.toFixed(4) + "</b>";
 }
 </script>
 
