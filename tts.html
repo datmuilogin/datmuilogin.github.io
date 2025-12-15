@@ -144,7 +144,7 @@ select#voice, #theme {
 <h2>🔊 Vietnamese TTS – Safari Ready</h2>
 
 <textarea id="txt">
-Chào mừng bạn. Giọng đọc này đang sử dụng giọng đọc tiếng Việt tích hợp của Apple. Chúng tôi đã xử lý các vấn đề về ngắt câu và số thập phân (ví dụ: 10.5) để tối ưu hóa trải nghiệm đọc cho bạn.
+Chào mừng bạn. Giọng đọc này đang sử dụng giọng đọc tiếng Việt tích hợp của Apple. Chúng tôi đã xử lý các vấn đề về ngắt câu và số thập phân (ví dụ: 10,5) để tối ưu hóa trải nghiệm đọc cho bạn.
 </textarea>
 
 <div class="controls">
@@ -200,6 +200,19 @@ speechSynthesis.onvoiceschanged=()=>{
   voice.innerHTML="";
   if (voices.length === 0) {
       statusEl.textContent = "Error: No Vietnamese voices found on this device.";
+      // Đặt một timeout ngắn để kiểm tra lại
+      setTimeout(() => {
+          voices = speechSynthesis.getVoices().filter(v => v.lang === "vi-VN");
+          if (voices.length > 0) {
+              statusEl.textContent = "Status: Voices found after delay. Ready.";
+              voices.forEach((v, i) => {
+                  const o = document.createElement("option");
+                  o.value = i;
+                  o.text = v.name;
+                  voice.appendChild(o);
+              });
+          }
+      }, 500); 
       return;
   }
   voices.forEach((v,i)=>{
@@ -215,14 +228,12 @@ function splitText(){
   let text = txt.value;
   
   // 1. Thay thế TẤT CẢ dấu chấm (.) thành dấu phẩy (,)
-  // Việc này buộc TTS đọc 10.5 là "mười phẩy năm" và loại bỏ dấu chấm câu cứng.
   text = text.replace(/\./g, ','); 
   
   // 2. Thay thế dấu phẩy ngữ pháp (nếu còn) bằng dấu ngắt mềm ( – ) 
   text = text.replace(/,/g, ' – '); 
   
   // 3. Chia văn bản thành các câu. Chỉ dùng dấu chấm than (!) và hỏi (?) để ngắt câu.
-  // Dấu chấm câu đã được xử lý ở bước 1 và 2.
   let raw_sentences = text.match(/[^!?]+[!?]*/g) || [];
   
   let final_sentences = raw_sentences.map(s => {
@@ -290,14 +301,18 @@ play.onclick=()=>{
   if(timer) clearTimeout(timer);
   speechSynthesis.cancel();
   
+  // Kiểm tra văn bản trước khi xử lý
+  if (txt.value.trim() === "") {
+      statusEl.textContent = "Error: Textarea is empty. Please enter text.";
+      return;
+  }
+
   sentences=splitText(); 
   if(!sentences.length || !voices.length) {
     statusEl.textContent = "Error: No text or no Vietnamese voices found.";
     return;
   }
 
-  // Trên iOS/Safari, việc gọi speechSynthesis.speak() phải được gọi từ một hàm 
-  // kích hoạt bởi tương tác người dùng (như sự kiện click này) để hoạt động.
   index=0;
   bar.style.width="0%";
   speaking=true;
