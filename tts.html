@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Vietnamese TTS – iOS Safari Optimized</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+/* Thiết kế tối ưu cho di động (Mobile-First Design) */
+:root{
+  --bg:#0f172a;
+  --card:#111827;
+  --text:#e5e7eb;
+  --accent:#2563eb;
+}
+.light{
+  --bg:#f3f4f6;
+  --card:#ffffff;
+  --text:#111827;
+}
+body{
+  margin:0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
+  min-height: 100vh; 
+  padding: 15px; 
+}
+.app{
+  width: 100%; 
+  max-width:780px;
+  background:var(--card);
+  padding:20px;
+  border-radius:14px;
+  box-shadow:0 20px 40px rgba(0,0,0,.4);
+}
+h2 {
+    font-size: 20px;
+    margin-top: 0;
+}
+textarea{
+  width:100%;
+  height:150px;
+  font-size:17px;
+  padding:15px;
+  box-sizing: border-box;
+  border-radius: 8px;
+  border: 1px solid #334155;
+  background: #000;
+  color: var(--text);
+  resize: none;
+}
+.controls{
+  display:flex;
+  flex-direction: column; 
+  gap:15px; 
+  margin-top:15px;
+}
+.main-actions {
+    display: flex;
+    flex-direction: column; 
+    gap: 10px;
+    width: 100%;
+}
+.settings-row {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+    flex-wrap: wrap; 
+}
+
+button, select, label {
+  padding:14px 16px; 
+  border-radius:10px;
+  border:none;
+  font-size:17px; 
+  box-sizing: border-box;
+  text-align: center;
+}
+button{
+  background:var(--accent);
+  color:#fff;
+  cursor:pointer;
+  transition:transform .06s,box-shadow .06s;
+}
+button:active{
+  transform:scale(.96);
+  box-shadow:inset 0 3px 6px rgba(0,0,0,.3);
+}
+button:disabled{
+  opacity:.45;
+  cursor:not-allowed;
+}
+
+.main-actions button {
+    width: 100%;
+}
+
+label {
+    display: flex;
+    flex-direction: column; 
+    align-items: center;
+    background: #202d44; 
+    padding: 12px;
+    flex-grow: 1; 
+}
+
+label input[type="range"] {
+    width: 100%;
+    margin-top: 5px;
+}
+
+select#voice, #theme {
+    flex-grow: 1;
+    min-width: 100px; 
+    background: #334155;
+    color: var(--text);
+}
+
+.progress{
+  height:8px;
+  background:#334155;
+  border-radius:6px;
+  overflow:hidden;
+  margin-top:12px;
+}
+.bar{
+  height:100%;
+  width:0%;
+  background:#22c55e;
+  transition:width .15s linear;
+}
+.status{
+  margin-top:6px;
+  font-size:13px;
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+<h2>🔊 Vietnamese TTS – Safari Ready</h2>
+
+<textarea id="txt">
+Chào mừng bạn. Giọng đọc này đang sử dụng giọng đọc tiếng Việt tích hợp của Apple. Chúng tôi đã xử lý các vấn đề về ngắt câu và số thập phân (ví dụ: 10.5) để tối ưu hóa trải nghiệm đọc cho bạn.
+</textarea>
+
+<div class="controls">
+<select id="voice"></select>
+
+<div class="settings-row">
+    <label>Rate (Max Speed)
+    <input id="rate" type="range" min="0.7" max="1.3" step="0.1" value="1.3" disabled> 
+    </label>
+
+    <label>Pitch
+    <input id="pitch" type="range" min="0.8" max="1.4" step="0.1" value="1">
+    </label>
+    
+    <button id="theme">🌗 Theme</button>
+</div>
+
+<div class="main-actions">
+    <button id="play">▶ Speak</button> 
+    <button id="stop" disabled>⏹ Stop Speaking</button>
+</div>
+
+</div>
+
+<div class="progress">
+  <div class="bar" id="bar"></div>
+</div>
+<div class="status" id="status">Status: Ready</div>
+</div>
+
+<script>
+// Biến trạng thái
+let voices=[];
+let sentences=[];
+let index=0;
+let speaking=false;
+let timer=null; 
+
+const statusEl=document.getElementById("status");
+const bar=document.getElementById("bar");
+const txt = document.getElementById("txt");
+const voice = document.getElementById("voice");
+const rate = document.getElementById("rate"); 
+const pitch = document.getElementById("pitch");
+const play = document.getElementById("play");
+const stop = document.getElementById("stop");
+
+
+/* LOAD VOICES */
+speechSynthesis.onvoiceschanged=()=>{
+  // Lọc lấy giọng tiếng Việt
+  voices=speechSynthesis.getVoices().filter(v=>v.lang==="vi-VN");
+  voice.innerHTML="";
+  if (voices.length === 0) {
+      statusEl.textContent = "Error: No Vietnamese voices found on this device.";
+      return;
+  }
+  voices.forEach((v,i)=>{
+    const o=document.createElement("option");
+    o.value=i;
+    o.text=v.name;
+    voice.appendChild(o);
+  });
+};
+
+/* UTILS - Lõi tối ưu hóa ngắt câu và dấu thập phân */
+function splitText(){ 
+  let text = txt.value;
+  
+  // 1. Thay thế TẤT CẢ dấu chấm (.) thành dấu phẩy (,)
+  // Việc này buộc TTS đọc 10.5 là "mười phẩy năm" và loại bỏ dấu chấm câu cứng.
+  text = text.replace(/\./g, ','); 
+  
+  // 2. Thay thế dấu phẩy ngữ pháp (nếu còn) bằng dấu ngắt mềm ( – ) 
+  text = text.replace(/,/g, ' – '); 
+  
+  // 3. Chia văn bản thành các câu. Chỉ dùng dấu chấm than (!) và hỏi (?) để ngắt câu.
+  // Dấu chấm câu đã được xử lý ở bước 1 và 2.
+  let raw_sentences = text.match(/[^!?]+[!?]*/g) || [];
+  
+  let final_sentences = raw_sentences.map(s => {
+      s = s.trim();
+      // Loại bỏ dấu chấm hỏi/than cuối cùng để ngăn TTS dừng quá lâu
+      s = s.replace(/[!?]$/, ''); 
+      return s;
+  }).filter(s => s.length > 0);
+  
+  return final_sentences; 
+}
+
+function updateProgress(){ bar.style.width = Math.round(index/sentences.length*100) + "%"; }
+
+/* SPEAK */
+function speakNext(){
+  if(!speaking || !voices.length) return;
+  if(index>=sentences.length){ finishSpeak(); return; }
+  speechSynthesis.cancel(); 
+
+  const u=new SpeechSynthesisUtterance(sentences[index]);
+  u.voice=voices[voice.value];
+  
+  // Tốc độ được đặt là giá trị max (1.3) để đọc liền mạch hơn
+  u.rate = parseFloat(rate.value); 
+  
+  u.pitch=parseFloat(pitch.value);
+  statusEl.textContent="Speaking: "+sentences[index].slice(0,40).trim()+"...";
+
+  u.onend=()=>{
+    if(!speaking) return; 
+    index++;
+    updateProgress();
+    // Thời gian chờ là 0ms để phát câu tiếp theo ngay lập tức 
+    timer = setTimeout(()=>{ if(speaking) speakNext(); }, 0); 
+  };
+  
+  u.onerror = (e) => {
+    if(speaking) { 
+        console.error("TTS Speaking Error:", e);
+        finishSpeak(true); 
+    }
+  }
+  speechSynthesis.speak(u);
+}
+
+/* SPEAK CONTROL */
+function finishSpeak(wasStopped=false){
+  speechSynthesis.cancel(); 
+  speaking=false;
+  if(timer) { clearTimeout(timer); timer = null; }
+  play.disabled=false;
+  stop.disabled=true; 
+
+  if(wasStopped){ 
+      statusEl.textContent="Status: Speaking stopped";
+  } else { 
+      bar.style.width="100%"; 
+      statusEl.textContent="Status: Finished speaking";
+  }
+}
+
+/* PLAY BUTTON */
+play.onclick=()=>{
+  if(timer) clearTimeout(timer);
+  speechSynthesis.cancel();
+  
+  sentences=splitText(); 
+  if(!sentences.length || !voices.length) {
+    statusEl.textContent = "Error: No text or no Vietnamese voices found.";
+    return;
+  }
+
+  // Trên iOS/Safari, việc gọi speechSynthesis.speak() phải được gọi từ một hàm 
+  // kích hoạt bởi tương tác người dùng (như sự kiện click này) để hoạt động.
+  index=0;
+  bar.style.width="0%";
+  speaking=true;
+  play.disabled=true;
+  stop.disabled=false; 
+  statusEl.textContent="Status: Speaking…";
+  speakNext();
+};
+
+stop.onclick=()=>{
+  speaking = false;
+  finishSpeak(true);
+};
+
+
+/* THEME */
+theme.onclick=()=>{
+  document.body.classList.toggle("light");
+};
+</script>
+</body>
+</html>
