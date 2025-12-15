@@ -2,10 +2,10 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<title>Vietnamese TTS – iOS Safari Optimized</title>
+<title>Vietnamese TTS – Final Fix (Voice Load)</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-/* Thiết kế tối ưu cho di động (Mobile-First Design) */
+/* CSS giữ nguyên cho tính nhất quán và tối ưu di động */
 :root{
   --bg:#0f172a;
   --card:#111827;
@@ -144,7 +144,7 @@ select#voice, #theme {
 <h2>🔊 Vietnamese TTS – Safari Ready</h2>
 
 <textarea id="txt">
-Chào mừng bạn. Giọng đọc này đang sử dụng giọng đọc tiếng Việt tích hợp của Apple. Chúng tôi đã xử lý các vấn đề về ngắt câu và số thập phân (ví dụ: 10,5) để tối ưu hóa trải nghiệm đọc cho bạn.
+Chào mừng bạn. Giọng đọc này đang sử dụng giọng đọc tiếng Việt tích hợp của Apple. Vấn đề không tìm thấy giọng đọc đã được sửa bằng cách thêm cơ chế kiểm tra định kỳ.
 </textarea>
 
 <div class="controls">
@@ -172,7 +172,7 @@ Chào mừng bạn. Giọng đọc này đang sử dụng giọng đọc tiếng
 <div class="progress">
   <div class="bar" id="bar"></div>
 </div>
-<div class="status" id="status">Status: Ready</div>
+<div class="status" id="status">Status: Loading Voices...</div>
 </div>
 
 <script>
@@ -192,38 +192,56 @@ const pitch = document.getElementById("pitch");
 const play = document.getElementById("play");
 const stop = document.getElementById("stop");
 
+let maxAttempts = 10;
+let currentAttempt = 0;
+let voiceLoadingInterval = null;
 
-/* LOAD VOICES */
-speechSynthesis.onvoiceschanged=()=>{
-  // Lọc lấy giọng tiếng Việt
-  voices=speechSynthesis.getVoices().filter(v=>v.lang==="vi-VN");
-  voice.innerHTML="";
-  if (voices.length === 0) {
-      statusEl.textContent = "Error: No Vietnamese voices found on this device.";
-      // Đặt một timeout ngắn để kiểm tra lại
-      setTimeout(() => {
-          voices = speechSynthesis.getVoices().filter(v => v.lang === "vi-VN");
-          if (voices.length > 0) {
-              statusEl.textContent = "Status: Voices found after delay. Ready.";
-              voices.forEach((v, i) => {
-                  const o = document.createElement("option");
-                  o.value = i;
-                  o.text = v.name;
-                  voice.appendChild(o);
-              });
-          }
-      }, 500); 
-      return;
-  }
-  voices.forEach((v,i)=>{
-    const o=document.createElement("option");
-    o.value=i;
-    o.text=v.name;
-    voice.appendChild(o);
-  });
-};
 
-/* UTILS - Lõi tối ưu hóa ngắt câu và dấu thập phân */
+/* LOAD VOICES - ĐÃ CẢI TIẾN LOGIC */
+function populateVoiceList() {
+    voices = speechSynthesis.getVoices().filter(v => v.lang.startsWith("vi")); // Dùng startsWith để bao gồm vi-VN, vi-US...
+    
+    if (voices.length > 0) {
+        clearInterval(voiceLoadingInterval);
+        voice.innerHTML = "";
+        voices.forEach((v, i) => {
+            const o = document.createElement("option");
+            o.value = i;
+            o.text = v.name;
+            voice.appendChild(o);
+        });
+        statusEl.textContent = "Status: Ready.";
+        return true;
+    }
+    
+    currentAttempt++;
+    if (currentAttempt >= maxAttempts) {
+        clearInterval(voiceLoadingInterval);
+        statusEl.textContent = "Error: No Vietnamese voices found after multiple attempts. Please check device language settings.";
+        return false;
+    }
+    return false;
+}
+
+function loadVoices() {
+    if (speechSynthesis.getVoices().length > 0) {
+        if (populateVoiceList()) return;
+    }
+    
+    // Thiết lập polling để kiểm tra lại mỗi 500ms
+    voiceLoadingInterval = setInterval(() => {
+        populateVoiceList();
+    }, 500);
+}
+
+// Gọi loadVoices khi có sự kiện voiceschanged (Nếu nó xảy ra)
+speechSynthesis.onvoiceschanged = populateVoiceList;
+
+// Gọi loadVoices ngay lập tức để bắt đầu kiểm tra
+loadVoices();
+
+
+/* UTILS - Lõi tối ưu hóa ngắt câu và dấu thập phân (Giữ nguyên) */
 function splitText(){ 
   let text = txt.value;
   
