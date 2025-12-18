@@ -1,0 +1,496 @@
+<!-- 
+PLAN NARRATIVE & STRUCTURE:
+1.  **Header & Introduction**: Sets the context comparing Traditional Rankine Cycle vs. Modern Combined Cycle.
+2.  **Key Comparison (Head-to-Head)**: Immediate comparison of critical output metrics (Generator Capacity) to hook the user.
+3.  **Deep Dive: Model 1 (Rankine)**: Focuses on the boiler and turbine efficiency curve.
+    -   *Visualization*: Line Chart for Turbine Efficiency vs Flow.
+4.  **Deep Dive: Model 1a (Combined Cycle)**: Focuses on the Gas Turbine and HRSG exhaust composition.
+    -   *Visualization*: Donut Chart for Flue Gas Composition.
+5.  **Technical Specs Showdown**: detailed side-by-side comparison of steam conditions.
+    -   *Visualization*: Multi-axis Bar Chart comparing Pressure and Temperature.
+    -   *Visualization*: Horizontal Bar Chart for Steam Flow volume.
+6.  **Conclusion**: Summary of the technological shift.
+
+CHART SELECTION JUSTIFICATION (NO SVG/MERMAID):
+1.  **Generator Output**: Vertical Bar Chart (Chart.js). Goal: Compare. Standard, easy to read comparison of two values.
+2.  **Turbine Efficiency Curve**: Line Chart (Chart.js). Goal: Change/Trend. Shows how efficiency drops at partial loads.
+3.  **Flue Gas Composition**: Donut Chart (Chart.js). Goal: Inform/Proportion. Shows the makeup of exhaust gas feeding the HRSG.
+4.  **Steam Parameters**: Grouped Bar Chart (Chart.js). Goal: Compare. Compares Pressure and Temp side-by-side.
+5.  **Steam Flow**: Horizontal Bar Chart (Chart.js). Goal: Compare. Emphasizes the sheer volume difference.
+-->
+
+<!-- 
+CHOSEN PALETTE: "Electric Innovation"
+- Primary Blue: #3B82F6 (Tailwind blue-500)
+- Secondary Teal: #14B8A6 (Tailwind teal-500)
+- Accent Orange: #F97316 (Tailwind orange-500)
+- Background: #F3F4F6 (Tailwind gray-100)
+- Card Bg: #FFFFFF
+-->
+
+<!-- CONFIRMATION: NEITHER Mermaid JS NOR SVG were used in this output. All icons are CSS/Unicode. All charts are Canvas. -->
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>So Sánh Công Nghệ Nhà Máy Nhiệt Điện</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap');
+        body { font-family: 'Roboto', sans-serif; }
+        
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+
+        /* Unicode Icons styling */
+        .icon-lg { font-size: 2.5rem; line-height: 1; }
+        .icon-md { font-size: 1.5rem; line-height: 1; }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <!-- Header Section -->
+    <header class="bg-blue-600 text-white p-8 shadow-lg">
+        <div class="max-w-6xl mx-auto text-center">
+            <h1 class="text-4xl md:text-5xl font-bold mb-4 uppercase tracking-wider">Công Nghệ Nhiệt Điện</h1>
+            <p class="text-xl md:text-2xl font-light opacity-90">So sánh Mô hình Chu trình Rankine & Chu trình Hỗn hợp</p>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto p-4 md:p-8 space-y-12">
+
+        <!-- Intro Section -->
+        <section class="bg-white rounded-lg shadow-md p-6 md:p-8">
+            <h2 class="text-2xl font-bold text-blue-600 mb-4 border-b-2 border-orange-500 pb-2 inline-block">Giới Thiệu</h2>
+            <p class="text-lg leading-relaxed text-gray-700">
+                Báo cáo này phân tích dữ liệu kỹ thuật từ hai mô hình nhà máy ảo: 
+                <span class="font-bold text-blue-600">Mô hình 1 (Chu trình Rankine)</span> truyền thống sử dụng lò hơi đốt trực tiếp, và 
+                <span class="font-bold text-teal-600">Mô hình 1a (Chu trình Hỗn hợp)</span> hiện đại kết hợp Tuabin khí và Lò hơi thu hồi nhiệt (HRSG).
+                Chúng ta sẽ đi sâu vào hiệu suất, thông số vận hành và cấu hình hệ thống để thấy rõ sự khác biệt công nghệ.
+            </p>
+        </section>
+
+        <!-- Key Metric Comparison: Generator Output -->
+        <section>
+            <div class="bg-white rounded-lg shadow-md p-6 md:p-8">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
+                    <div class="md:col-span-1">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">Công Suất Máy Phát Điện</h3>
+                        <p class="text-gray-600 mb-4">
+                            Sự khác biệt rõ rệt nhất nằm ở công suất đầu ra. Chu trình hỗn hợp (Model 1a) cung cấp công suất định mức cao hơn đáng kể so với chu trình Rankine truyền thống nhờ tận dụng nhiệt thải.
+                        </p>
+                        <div class="flex items-center space-x-4 mb-2">
+                            <span class="icon-md text-blue-500">🏭</span>
+                            <div>
+                                <span class="block text-sm text-gray-500">Rankine</span>
+                                <span class="text-xl font-bold">150,000 kVA</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <span class="icon-md text-teal-500">♻️</span>
+                            <div>
+                                <span class="block text-sm text-gray-500">Hỗn Hợp</span>
+                                <span class="text-xl font-bold">175,000 kVA</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="md:col-span-2">
+                        <div class="chart-container">
+                            <canvas id="genCapacityChart"></canvas>
+                        </div>
+                        <p class="text-center text-sm text-gray-500 mt-2 italic">So sánh công suất định mức (kVA)</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Model 1: Rankine Cycle Details -->
+        <section class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Card 1: Boiler Stats -->
+            <div class="bg-white rounded-lg shadow-md p-6 border-t-4 border-blue-500">
+                <h3 class="text-xl font-bold text-blue-600 mb-4 flex items-center">
+                    <span class="mr-2">🔥</span> Lò Hơi (Rankine)
+                </h3>
+                <p class="text-gray-600 mb-6">
+                    Hệ thống hoạt động ở áp suất siêu cao để tối ưu hóa nhiệt động lực học.
+                </p>
+                <div class="grid grid-cols-2 gap-4 text-center">
+                    <div class="p-4 bg-blue-50 rounded-lg">
+                        <div class="text-2xl font-bold text-blue-700">2,415</div>
+                        <div class="text-xs text-blue-500 uppercase font-semibold">Áp suất (psia)</div>
+                    </div>
+                    <div class="p-4 bg-orange-50 rounded-lg">
+                        <div class="text-2xl font-bold text-orange-600">1,000°F</div>
+                        <div class="text-xs text-orange-500 uppercase font-semibold">Nhiệt độ</div>
+                    </div>
+                    <div class="col-span-2 p-4 bg-gray-50 rounded-lg">
+                        <div class="text-2xl font-bold text-gray-700">1,000,000</div>
+                        <div class="text-xs text-gray-500 uppercase font-semibold">Sản lượng hơi (lb/h)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 2: Turbine Efficiency Curve -->
+            <div class="bg-white rounded-lg shadow-md p-6 border-t-4 border-blue-500">
+                <h3 class="text-xl font-bold text-blue-600 mb-2 flex items-center">
+                    <span class="mr-2">📈</span> Hiệu Suất Tuabin HP
+                </h3>
+                <p class="text-gray-600 text-sm mb-4">
+                    Biểu đồ thể hiện hiệu suất tuabin cao áp thay đổi theo tỷ lệ lưu lượng hơi. Hiệu suất đạt đỉnh 86% ở tải định mức.
+                </p>
+                <div class="chart-container">
+                    <canvas id="turbineEffChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Model 1a: Combined Cycle Details -->
+        <section class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Card 1: HRSG & Gas Turbine -->
+            <div class="bg-white rounded-lg shadow-md p-6 border-t-4 border-teal-500">
+                <h3 class="text-xl font-bold text-teal-600 mb-4 flex items-center">
+                    <span class="mr-2">💨</span> Tuabin Khí & HRSG
+                </h3>
+                <p class="text-gray-600 mb-6">
+                    Khí thải nóng từ tuabin khí được đưa vào Lò hơi thu hồi nhiệt (HRSG) để sản xuất hơi nước, không cần đốt thêm nhiên liệu.
+                </p>
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center border-b pb-2">
+                        <span class="text-gray-600">Nhiệt suất (LHV)</span>
+                        <span class="font-mono font-bold text-teal-700">9,300 Btu/kWh</span>
+                    </div>
+                    <div class="flex justify-between items-center border-b pb-2">
+                        <span class="text-gray-600">Lưu lượng khí thải</span>
+                        <span class="font-mono font-bold text-teal-700">3.5M lb/h</span>
+                    </div>
+                    <div class="flex justify-between items-center border-b pb-2">
+                        <span class="text-gray-600">Nhiệt độ khí thải</span>
+                        <span class="font-mono font-bold text-teal-700">1,100 °F</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 2: Flue Gas Composition -->
+            <div class="bg-white rounded-lg shadow-md p-6 border-t-4 border-teal-500">
+                <h3 class="text-xl font-bold text-teal-600 mb-2 flex items-center">
+                    <span class="mr-2">🧪</span> Thành Phần Khí Thải
+                </h3>
+                <p class="text-gray-600 text-sm mb-4">
+                    Tỷ lệ phần trăm thể tích các chất trong khí thải đi vào HRSG. Nitơ chiếm đa số, theo sau là Oxy và Hơi nước.
+                </p>
+                <div class="chart-container">
+                    <canvas id="gasCompChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Detailed Comparison: Steam Parameters -->
+        <section class="bg-white rounded-lg shadow-md p-6 md:p-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6 border-l-4 border-orange-500 pl-4">So Sánh Thông Số Hơi</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                
+                <!-- Pressure & Temp Chart -->
+                <div>
+                    <h4 class="font-bold text-lg text-gray-700 mb-2 text-center">Áp Suất & Nhiệt Độ Hơi Chính</h4>
+                    <p class="text-sm text-gray-500 mb-4 text-center">
+                        Mô hình Rankine vận hành ở áp suất cực cao (2400+ psia), trong khi HRSG của chu trình hỗn hợp vận hành ở mức trung bình (~1200 psia).
+                    </p>
+                    <div class="chart-container">
+                        <canvas id="steamParamChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Steam Flow Chart -->
+                <div>
+                    <h4 class="font-bold text-lg text-gray-700 mb-2 text-center">Sản Lượng Hơi (lb/h)</h4>
+                    <p class="text-sm text-gray-500 mb-4 text-center">
+                        Lò hơi đốt trực tiếp (Rankine) tạo ra gấp đôi lượng hơi so với Lò hơi thu hồi nhiệt (HRSG).
+                    </p>
+                    <div class="chart-container">
+                        <canvas id="steamFlowChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Process Workflow (No SVG/Mermaid) -->
+        <section class="bg-gray-800 text-white rounded-lg shadow-md p-6 md:p-8">
+            <h2 class="text-2xl font-bold mb-6 text-center">Quy Trình Vận Hành Cơ Bản</h2>
+            
+            <!-- Rankine Flow -->
+            <div class="mb-8">
+                <h3 class="text-blue-400 font-bold mb-4">Chu Trình Rankine</h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
+                    <div class="bg-gray-700 p-4 rounded border border-gray-600">
+                        <div class="text-2xl mb-2">🔥</div>
+                        <div class="font-bold">Nhiên Liệu</div>
+                        <div class="text-xs text-gray-400">Đốt trực tiếp</div>
+                    </div>
+                    <div class="hidden md:flex items-center justify-center text-2xl text-gray-500">&rarr;</div>
+                    <div class="bg-gray-700 p-4 rounded border border-gray-600">
+                        <div class="text-2xl mb-2">💧&rarr;💨</div>
+                        <div class="font-bold">Lò Hơi</div>
+                        <div class="text-xs text-gray-400">2,415 psia / 1000°F</div>
+                    </div>
+                    <div class="hidden md:flex items-center justify-center text-2xl text-gray-500">&rarr;</div>
+                    <div class="bg-gray-700 p-4 rounded border border-gray-600">
+                        <div class="text-2xl mb-2">⚙️</div>
+                        <div class="font-bold">Tuabin Hơi</div>
+                        <div class="text-xs text-gray-400">HP & LP Stages</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CC Flow -->
+            <div>
+                <h3 class="text-teal-400 font-bold mb-4">Chu Trình Hỗn Hợp</h3>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
+                    <div class="bg-gray-700 p-4 rounded border border-gray-600">
+                        <div class="text-2xl mb-2">🌬️</div>
+                        <div class="font-bold">Tuabin Khí</div>
+                        <div class="text-xs text-gray-400">Phát điện sơ cấp</div>
+                    </div>
+                    <div class="hidden md:flex items-center justify-center text-2xl text-gray-500">&rarr;</div>
+                    <div class="bg-gray-700 p-4 rounded border border-gray-600">
+                        <div class="text-2xl mb-2">♨️</div>
+                        <div class="font-bold">HRSG</div>
+                        <div class="text-xs text-gray-400">Thu hồi nhiệt thải</div>
+                    </div>
+                    <div class="hidden md:flex items-center justify-center text-2xl text-gray-500">&rarr;</div>
+                    <div class="bg-gray-700 p-4 rounded border border-gray-600">
+                        <div class="text-2xl mb-2">⚙️</div>
+                        <div class="font-bold">Tuabin Hơi</div>
+                        <div class="text-xs text-gray-400">Phát điện thứ cấp</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-gray-200 text-center p-6 mt-12">
+        <p class="text-gray-600 text-sm">Dữ liệu dựa trên tài liệu: Virtual Plant Exercise 1 and 1a Data rev 1</p>
+    </footer>
+
+    <script>
+        // Utility: Text Wrapping for Long Labels
+        function wrapLabel(str, maxChars) {
+            if (str.length <= maxChars) return str;
+            const words = str.split(' ');
+            const lines = [];
+            let currentLine = words[0];
+
+            for (let i = 1; i < words.length; i++) {
+                if (currentLine.length + 1 + words[i].length <= maxChars) {
+                    currentLine += ' ' + words[i];
+                } else {
+                    lines.push(currentLine);
+                    currentLine = words[i];
+                }
+            }
+            lines.push(currentLine);
+            return lines;
+        }
+
+        // Shared Tooltip Configuration
+        const sharedTooltipConfig = {
+            callbacks: {
+                title: function(tooltipItems) {
+                    const item = tooltipItems[0];
+                    let label = item.chart.data.labels[item.dataIndex];
+                    if (Array.isArray(label)) {
+                        return label.join(' ');
+                    } else {
+                        return label;
+                    }
+                }
+            }
+        };
+
+        // 1. Generator Capacity Chart
+        const ctxGen = document.getElementById('genCapacityChart').getContext('2d');
+        new Chart(ctxGen, {
+            type: 'bar',
+            data: {
+                labels: wrapLabel(['Rankine Cycle', 'Combined Cycle'], 16),
+                datasets: [{
+                    label: 'Công suất (kVA)',
+                    data: [150000, 175000],
+                    backgroundColor: ['#3B82F6', '#14B8A6'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: sharedTooltipConfig
+                },
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+
+        // 2. Turbine Efficiency Line Chart
+        const ctxEff = document.getElementById('turbineEffChart').getContext('2d');
+        new Chart(ctxEff, {
+            type: 'line',
+            data: {
+                labels: ['50%', '75%', '90%', '100%'], // Short enough, no wrapping needed
+                datasets: [{
+                    label: 'Hiệu suất (%)',
+                    data: [72, 83, 85.3, 86],
+                    borderColor: '#F97316',
+                    backgroundColor: 'rgba(249, 115, 22, 0.1)',
+                    tension: 0.3,
+                    fill: true,
+                    pointBackgroundColor: '#FFFFFF',
+                    pointBorderColor: '#F97316',
+                    pointBorderWidth: 2,
+                    pointRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    tooltip: sharedTooltipConfig,
+                    legend: { display: false }
+                },
+                scales: {
+                    y: { min: 60, max: 100 },
+                    x: { title: { display: true, text: 'Tỷ lệ lưu lượng (Flow Ratio)' } }
+                }
+            }
+        });
+
+        // 3. Flue Gas Composition Donut Chart
+        const ctxGas = document.getElementById('gasCompChart').getContext('2d');
+        // Labels for composition
+        const gasLabels = [
+            'Nitrogen (N2)', 
+            'Oxygen (O2)', 
+            'Water Vapor (H2O)', 
+            'Carbon Dioxide (CO2)', 
+            'Argon (Ar)'
+        ];
+        // Process labels
+        const processedGasLabels = gasLabels.map(l => wrapLabel(l, 16));
+
+        new Chart(ctxGas, {
+            type: 'doughnut',
+            data: {
+                labels: processedGasLabels,
+                datasets: [{
+                    data: [72.73, 12.06, 10.51, 3.83, 0.87],
+                    backgroundColor: [
+                        '#9CA3AF', // N2 - Gray
+                        '#3B82F6', // O2 - Blue
+                        '#60A5FA', // H2O - Light Blue
+                        '#1F2937', // CO2 - Dark
+                        '#F59E0B'  // Ar - Amber
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'right', labels: { boxWidth: 12 } },
+                    tooltip: sharedTooltipConfig
+                }
+            }
+        });
+
+        // 4. Steam Parameters Grouped Bar
+        const ctxParam = document.getElementById('steamParamChart').getContext('2d');
+        new Chart(ctxParam, {
+            type: 'bar',
+            data: {
+                labels: wrapLabel(['Rankine Cycle', 'Combined Cycle (HRSG)'], 16),
+                datasets: [
+                    {
+                        label: 'Áp suất (psia)',
+                        data: [2414.7, 1200],
+                        backgroundColor: '#3B82F6',
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'Nhiệt độ (°F)',
+                        data: [1000, 983.81],
+                        backgroundColor: '#F97316',
+                        yAxisID: 'y1'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    tooltip: sharedTooltipConfig
+                },
+                scales: {
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        title: { display: true, text: 'Áp suất (psia)' }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        title: { display: true, text: 'Nhiệt độ (°F)' },
+                        grid: { drawOnChartArea: false }
+                    }
+                }
+            }
+        });
+
+        // 5. Steam Flow Horizontal Bar
+        const ctxFlow = document.getElementById('steamFlowChart').getContext('2d');
+        new Chart(ctxFlow, {
+            type: 'bar',
+            data: {
+                labels: wrapLabel(['Rankine Cycle', 'Combined Cycle (HRSG)'], 16),
+                datasets: [{
+                    label: 'Lưu lượng hơi (lb/h)',
+                    data: [1000000, 500000],
+                    backgroundColor: ['#3B82F6', '#14B8A6'],
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: sharedTooltipConfig
+                },
+                scales: {
+                    x: { beginAtZero: true }
+                }
+            }
+        });
+
+    </script>
+</body>
+</html>
